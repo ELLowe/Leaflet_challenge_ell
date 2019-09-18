@@ -1,8 +1,8 @@
 function createMap(EarthquakeMarkersLayer){
     console.log(EarthquakeMarkersLayer);
   
-    // Create a baseMaps object to hold the lightmap and darkmap layer
-    // Define variables for our tile layers
+    // Created a baseMaps object to hold the lightmap and darkmap layer
+    // Defined variables for tile layers
     const light = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: attribution,
     maxZoom: 18,
@@ -23,24 +23,24 @@ function createMap(EarthquakeMarkersLayer){
     Dark: dark
     };
   
-    // Create an overlayMaps object to hold the bikeStations layer
-    // Overlays that may be toggled on or off
+    // Create an overlayMaps object to hold the earthquake data layer
+    // This creates overlays that may be toggled on or off
     const overlayMaps = {
     Earthquakes: EarthquakeMarkersLayer
     };
   
-    // Create the map object with options
-     // Creating map object
+    // Created the map object with options
+     // Map object is centered on the US
      const myMap = L.map("map", {
       center: [39.8283, -98.5795],
       zoom: 4,
       layers: [light, EarthquakeMarkersLayer]
     });
   
-    // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
+    // Created a layer control, pass in the baseMaps and overlayMaps. Added the layer control to the map
     L.control.layers(baseMaps, overlayMaps, {collapsed: false}).addTo(myMap);
 
-    // LEGEND NEEDS WORK!
+    // Legend
     function getColor(d) {
         return d >= 8.0 ? '#ff0000' :
             d >= 7.0  ? '#ff8000' :
@@ -58,7 +58,7 @@ function createMap(EarthquakeMarkersLayer){
         grades = [0, 2.5, 5.4, 6.9, 7.9, 8.0],
         labels = ["2.5 or less", "2.5-5.4", "5.5-6.0","6.1-6.9","7.0-7.9","8.0 or more"];
 
-        // loop through the density intervals and generate a label with a colored square for each interval
+        // loop through the density intervals and generate a colored label for each interval
         for (var i = 0; i < grades.length; i++) {
             div.innerHTML +=
                 '<div style="background-color:' + getColor(grades[i]) + '"> ' +
@@ -71,19 +71,19 @@ function createMap(EarthquakeMarkersLayer){
     legend.addTo(myMap);
 }
 
-// Create the createMarkers function
+// Created a createMarkers function to generate the circles
 function createMarkers(response){
     console.log('["createMarkers"] response: ', response);
-    // Pull the earthquakes & properties off of response.features
+    // Pulled the earthquakes & properties off of response.features
     let features = response.features;
     console.log(features);
   
-    // Initialize an array to hold earthquake markers
+    // Initialized an array to hold earthquake markers
     let earthquakeMarkers = [];
 
-    // Loop through the earthquakes array and create a circle marker for each earthquake object
+    // Looped through the earthquakes array and create a circle marker for each earthquake object
     features.forEach((feature) => {
-        // Conditionals for earthquake effects by magnitude
+        // Conditionals for earthquake effects by magnitude:
         let color = "";
         let nature ="";
         let magnitude = feature.properties.mag;
@@ -112,29 +112,27 @@ function createMarkers(response){
             nature = "Great earthquake. Can totally destroy communities near the epicenter";
         }
     
-    // Add circles to the array
+    // Added circles to the array
     let earthquakeMarker =
         L.circle([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {
         fillOpacity: 0.85,
         color: "black",
         fillColor: color,
         weight: 1,
-        // Adjust radius
+        // Adjusted radius according to magnitude and made popups
         radius: feature.properties.mag * 9000
         }).bindPopup(`<h1>${feature.properties.place}</h1> <hr> <h3>Magnitude: ${feature.properties.mag}</h3> <hr> <p>${nature} </p>`);
         earthquakeMarkers.push(earthquakeMarker);
     
     });
 
-    // Create a layer group made from the earthquakeMarkers array, pass it into the createMap function
+    // Created a layer group made from the earthquakeMarkers array, passed it into the createMap function for the overlay
     let markersLayer = L.layerGroup(earthquakeMarkers);
     createMap(markersLayer);
 }
 
 
     
-// Perform an API call to the USGS API to get earthquake information. Call createMarkers when complete:
-//   const url = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
+// Performed the API call to the USGS API to get earthquake information. Called createMarkers to start the process of building the map:
 const url ='https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson';
-//   const url = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson';
 d3.json(url, createMarkers);
